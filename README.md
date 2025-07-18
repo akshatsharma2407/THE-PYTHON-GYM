@@ -1,5 +1,7 @@
 # 🏋️‍♂️ THE PYTHON GYM
 
+## 170 + Industrial Relevent Python & Pandas Questions Solved and Exploring more...
+
 Welcome to **THE PYTHON GYM** — my personal practice arena where I strengthen my Python skills through industry-focused questions, real interview challenges, and hands-on coding exercises.
 
 ---
