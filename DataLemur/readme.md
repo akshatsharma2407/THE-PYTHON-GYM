@@ -1,7 +1,7 @@
 # 📊 DataLemur Free Questions — Solved in Style
 
 Hi there! 👋  
-This repository contains **solutions to all the free DataLemur questions** — carefully explained and implemented in **Python**, with clean **Markdown** documentation for each one.
+This repository contains **solutions to all the free DataLemur questions** — carefully explained and implemented in **Python**, with clean **Markdown** documentation for each one. Questions belong to MNCs like `Google, Mircosoft, Spotify, Apple and Amazon.`
 
 ---
 
