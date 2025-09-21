@@ -37,6 +37,16 @@ def rotate_xlabels(ax,degree=45):
       ha='right'
   )
 
+def rotate_ylabels(ax,degree=45):
+  """
+  Takes ax object as input and rotate the labels to given degree (default is 45)
+  """
+  return ax.set_yticklabels(
+      ax.get_yticklabels(),
+      rotation=degree,
+      ha='right'
+  )
+
 def plot_null_info(data, figsize=(15, 4)):
   """
   plots the Null value count of each column into bar chart.
@@ -285,5 +295,35 @@ def numerical_univariate_plots(col,hist_bins='auto',figsize=(20,10),power_transf
   ax[1][2].set_title('QQ-Plot')
 
   fig.suptitle('Numerical Univariate Plots',fontsize=20)
+  fig.tight_layout()
+  fig.show()
+
+def categorical_bivariate_plots(df,col1,col2,figsize=(15,5),normalize='index',rotate_x_axis=45,rotate_y_axis=0,stacked=True):
+  display_html(f'{col1} Vs {col2} Categorical Plots',size=1)
+
+  fig,ax = plt.subplots(nrows=1,ncols=2,figsize=figsize)
+
+  crsstb = pd.crosstab(index=df[col1],columns=df[col2])
+  crssstb_nc = pd.crosstab(index=df[col1],columns=df[col2],normalize=normalize).round(2)
+
+  sns.heatmap(crsstb,linewidths=1.5,annot=True,fmt="d",cmap='Oranges',ax=ax[0])
+  ax[0].set_title('Cross Tab')
+  rotate_xlabels(ax[0],degree=rotate_x_axis)
+  rotate_ylabels(ax[0],degree=rotate_y_axis)
+
+  sns.heatmap(crssstb_nc,linewidths=1.5,annot=True,cmap='Greens',ax=ax[1])
+  ax[1].set_title('Cross Tab - Normalized')
+  rotate_xlabels(ax[1],degree=rotate_x_axis)
+  rotate_ylabels(ax[1],degree=rotate_y_axis)
+
+  fig,ax = plt.subplots(figsize=figsize)
+  crsstb.plot(kind='bar',ax=ax,stacked=stacked)
+  ax.legend(loc="upper left",bbox_to_anchor=(1,1))
+  ax.set_title('Bar-Plot',fontsize=20)
+
+  g = sns.clustermap(crsstb, cmap="coolwarm", annot=True, fmt="d",figsize=figsize)
+  g.fig.suptitle('Clusermap',fontsize=20)
+  plt.tight_layout()
+
   fig.tight_layout()
   fig.show()
