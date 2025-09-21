@@ -299,6 +299,18 @@ def numerical_univariate_plots(col,hist_bins='auto',figsize=(20,10),power_transf
   fig.show()
 
 def categorical_bivariate_plots(df,col1,col2,figsize=(15,5),normalize='index',rotate_x_axis=45,rotate_y_axis=0,stacked=True):
+  """
+  Returns Graphs showing relation between two categorial variables
+
+  parameters ->
+  1. df - dataframe
+  2. col1, col2 - name of categorical columns
+  3. figsize - to adjust the figure size.
+  4. normalize - [Ture,'index','columns'] Default is 'index'.
+  5. rotate_x_axis - rotate lables of x_axis on heatmap.
+  6. rotate_y_axis - rotate labels of y_axis on heatmap.
+  7. stacked - [True,False] Default is True. returns grouped bar chart if set to False
+  """
   display_html(f'{col1} Vs {col2} Categorical Plots',size=1)
 
   fig,ax = plt.subplots(nrows=1,ncols=2,figsize=figsize)
