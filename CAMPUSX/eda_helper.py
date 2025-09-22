@@ -516,3 +516,39 @@ def numerical_vs_categorical_hypothesis_test(df,numeric_col,category_col,compari
   tukey.plot_simultaneous(comparison_name=comparison_name)
 
   plt.show()
+
+def categorical_categorical_hypothesis_test(df,col1,col2,alpha=0.05,show_freq=False):
+  """
+  This function perform chi2 (Test for Independence), between two categorical variables
+
+  1. df - DataFrame object
+  2. col1,col2 - column name on which test will be applied
+  3. alpha - Default value of alpha is 0.05, It is used to accept or reject the null hypothesis
+  4. show_freq - Whether to show or hide the Observed and Expected Frequencies.
+  """
+
+  ct = pd.crosstab(index=df[col1],columns=df[col2])
+  statistic,pvalue,dof,exp_freq = stats.chi2_contingency(ct)
+
+  if show_freq:
+    display_html('Observed Frequency')
+    print('----------------------------')
+    display(ct)
+
+    display_html('Expected Frequency')
+    print('---------------------------')
+    display(pd.DataFrame(exp_freq).set_axis(ct.columns,axis=1).set_axis(ct.index,axis=0))
+
+  display_html('Chi-Square Test for Independence')
+  print('---------------------------------------------')
+  print(f'Significance level : {alpha*100} %')
+  print(f'Null Hypotheses : There is no association between two categorical variables.')
+  print(f'Alternate Hypotheses : There is association between two categorical variables.')
+  print(f'Degree of Freedom : {dof}')
+
+  if pvalue < alpha:
+    print(f'Since Pvalue is less than {alpha}, we reject Null Hypothesis')
+    print(f'CONCLUSION :  There is association between {col1} and {col2}')
+  else:
+    print(f'Since Pvalue is more than {alpha}, we failed to reject Null Hypothesis')
+    print(f'CONCLUSION : There is no association between {col1} and {col2}')
