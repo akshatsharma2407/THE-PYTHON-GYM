@@ -8,6 +8,7 @@ from scipy import stats
 import warnings
 import statsmodels.api as sm
 from sklearn.preprocessing import PowerTransformer
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
 def show_full_df(df):
   """
@@ -338,4 +339,180 @@ def categorical_bivariate_plots(df,col1,col2,figsize=(15,5),normalize='index',ro
   plt.tight_layout()
 
   fig.tight_layout()
-  fig.show()
+  fig.show() 
+
+def numerical_bivariate_plot(df,x,y,joint_plot=sns.scatterplot,margin_plot=sns.histplot,method='spearman'):
+  """
+  Functions plots two graph, 1. joinplot 2. correlation plot
+  Parameters ->
+  1. joint_plot - Default is sns.scatterplot, Here we can pass any bivariate numerical plot object of seaborn.
+  2. margin_plot -Default is sns.histplot, Any Object related to univariate numerical plot object of seaborn.
+  3. method - Default is spearman, avail options are ['spearman','pearson'].
+  """
+  g = sns.JointGrid(data=df,x=x,y=y)
+  g.plot(joint_plot,margin_plot)
+  g.figure.suptitle('Joint-Grid')
+  plt.tight_layout()
+  plt.show()
+
+  print('\n'*2)
+
+  fig,ax = plt.subplots(nrows=1,ncols=1)
+  corr_matrix = df[[x,y]].corr(method=method)
+  sns.heatmap(corr_matrix,ax=ax,annot=True,linewidth=1.5,cmap='Greens')
+  plt.title('Correlation Matrix')
+  plt.tight_layout()
+  plt.show()
+
+def numerical_vs_numerical_hypothesis_testing(df,var1,var2,alpha=0.05):
+  """
+  Function does two Test 
+  1. Pearson 2. Spearsman test
+
+  df,var1,var2 - Dataframe, name of col1, name of col2
+  alpha - Significance level, decides whether to accept or reject the null hypothesis
+  """
+
+  display_html('Pearson Correlation Test')
+  test_df = df[[var1,var2]].dropna()
+
+  statistic,pvalue = stats.pearsonr(test_df[var1],test_df[var2])
+
+  print(f'Significance level : {0.05*100} %')
+  print('Null Hypothesis : The Samples are not correlated.')
+  print('Alternate Hypothesis : The Samples are correlated.')
+  print(f'Test Statistic : {statistic}')
+  print(f'Pvalue : {pvalue}')
+
+  if pvalue < alpha:
+    print(f'Since Pvalue is less than {alpha}, we reject the Null Hypothesis.')
+    print(f'CONCLUSION: The Columns {var1} and {var2} are correlated.')
+  else:
+    print(f'Since Pvalue is more than {alpha}, we Failed to reject the Null Hypothesis.')
+    print(f'CONCLUTSION: The Columns {var1} and {var2} are not correlated.')
+  
+  display_html('Spearman Correlation Test')
+
+  statistic,pvalue = stats.spearmanr(test_df[var1],test_df[var2])
+
+  print(f'Significance level : {0.05*100} %')
+  print('Null Hypothesis : The Samples are not correlated.')
+  print('Alternate Hypothesis : The Samples are correlated.')
+  print(f'Test Statistic : {statistic}')
+  print(f'Pvalue : {pvalue}')
+
+  if pvalue < alpha:
+    print(f'Since Pvalue is less than {alpha}, we reject the Null Hypothesis.')
+    print(f'CONCLUSION: The Columns {var1} and {var2} are correlated.')
+  else:
+    print(f'Since Pvalue is more than {alpha}, we Failed to reject the Null Hypothesis.')
+    print(f'CONCLUTSION: The Columns {var1} and {var2} are not correlated.')
+
+
+def shapiro_test(col, alpha=0.05):
+    """
+    Function checks for normality by performing shapiro test based on given alpha value (default is 0.05)
+    and provides the  conclusion.
+
+    Parameter : 
+    1. col - column on which shapiro test will be applied
+    2. alpha - Default is 0.05. significance level, decides whether to accept or reject the null hypotheses
+    """
+    warnings.filterwarnings('ignore')
+
+    statistic, pvalue = stats.shapiro(col.dropna())
+
+    print(f'Significance level : {alpha*100} %')
+    print('Null Hypothesis : The samples are Normally Distributed.')
+    print('Alternate Hypothesis : The samples are Not Normally Distributed.')
+    print(f'Test Statistic : {statistic}')
+    print(f'Pvalue : {pvalue}')
+
+    if pvalue < alpha:
+        print(f'Since Pvalue is less than {alpha}, we reject the Null Hypothesis.')
+        print(f'CONCLUSION: The column "{col.name}" is Not Normally Distributed.')
+        
+    else:
+        print(f'Since Pvalue is greater than {alpha}, we fail to reject the Null Hypothesis.')
+        print(f'CONCLUSION: The column "{col.name}" can be considered Normally Distributed.')
+        
+
+
+def levene_test(df,numeric_col,category_col,alpha=0.05):
+  """
+  Function to test equal variances (homoscedesticity)
+  Parameter ->
+  1. groups - different groups on which test need to be applied, this groups should be array.
+  2. significance_level - Default is 0.05, used to determine whether to accept or reject null hypothesis.
+  3. Returns - [True,False] which will be used if other function calls.
+  """
+
+  test_df = df[[numeric_col,category_col]].dropna()
+
+  groups_dict = {name:group[numeric_col].values for name,group in test_df.groupby(category_col)}
+
+  statistic,pvalue = stats.levene(*groups_dict.values())
+  
+  print(f'Significance level : {alpha*100} %')
+  print(f'Null Hypothesis : All Groups have equal variances.')
+  print(f'Alternate Hypothesis : At least one group has different variance.')
+  print(f'Test Statistic : {statistic}')
+  print(f'Pvalue : {pvalue}')
+
+  if pvalue < alpha:
+    print(f'Since Pvalue is less than {alpha}, we reject Null Hypothesis')
+    print('CONCLUSION : Variances between groups are not equal.')
+    return False
+  
+  else:
+    print(f'Since Pvalue is greater than {alpha}, we Failed to reject Null Hypothesis')
+    print('CONCLUSION : Variances between groups are equal.')
+    return True
+
+def numerical_vs_categorical_hypothesis_test(df,numeric_col,category_col,comparison_name=None,anova_alpha=0.05,levene_alpha=0.05,post_hoc_alpha=0.05):
+  """
+  Perform levene,one_way_anova & Post-hoc Test.
+  
+  Parameters ->
+  1. df - The DataFrame Object.
+  2. Numeric_col - Name of Numerical column
+  3. Category_col - Name of Categorical Column which will act as groups for levene and anova test.
+  4. comparison_name - Name of group (category within category col), will be used as parameter in Post-hoc Plot.
+  5. anova_alpha, levene alpha, post_hoc_alpha - values that will decide respective Test result.
+  """
+  display_html('Levene Test')
+  print('----------------')
+
+  result = levene_test(df,numeric_col,category_col,alpha=levene_alpha)
+
+  if not result:
+    display_html(f' "{numeric_col}" with "{category_col}" groups does not pass levene test. Hence we will use Welch’s ANOVA test',5)
+  
+  display_html('One Way Anova')
+  print('---------------------')
+
+  test_df = df[[numeric_col,category_col]].dropna()
+  groups_dict = {name:group[numeric_col].values for name,group in test_df.groupby(category_col)}
+
+  statistic,pvalue = stats.f_oneway(*groups_dict.values(),equal_var=result)
+
+  print(f'Significance level : {anova_alpha*100}%')
+  print(f'Null Hypothesis : All Group means are equal.')
+  print(f'Alternate Hypothesis : One or more Group mean is different')
+
+  if pvalue < anova_alpha:
+    print(f'Since Pvalue is less than {anova_alpha}, we reject Null Hypothesis')
+    print('CONCLUSION : Atleast one group mean is different')
+  else:
+    print(f'Since Pvalue is more than {anova_alpha}, we Failed to reject Null Hypothesis')
+    print('CONCLUSION : All group means are Equal')
+
+  display_html(f'Post-Hoc Test (Tukey-HSD)')
+  print('--------------------------------------\n')
+  tukey = pairwise_tukeyhsd(endog=test_df[numeric_col],groups=test_df[category_col],alpha=post_hoc_alpha)
+
+  print(tukey.summary())
+  print('\n')
+  tukey.plot_simultaneous(comparison_name=comparison_name)
+
+  plt.show()
