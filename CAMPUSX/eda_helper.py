@@ -100,7 +100,7 @@ def cat_summary(col):
   display_html('Meta-Data')
   print(f'Data Type : { col.dtype }')
   print(f'No. of unique value : {col.nunique()}')
-  print(f'Missing Rows : {col.isna().sum()} ({col.isna().sum()/col.shape[0]} %)')
+  print(f'Missing Rows : {col.isna().sum()} ({round((col.isna().sum()/col.shape[0])*100,2)} %)')
   print(f'Available Data : {col.notna().sum()} / {col.shape[0]} rows')
 
   display_html('Description/Summary')
@@ -144,14 +144,15 @@ def categorical_univariate_plot(col,k=-1,wrdcld=True):
 
   plt.show()
 
+  print('\n'*2)
+
   if wrdcld:
-    text = " ".join(col.dropna().to_list())
-    
-    plt.figure(figsize=(15,10))
-    word_cloud = WordCloud().generate(text)
+    text = " ".join(col.dropna().astype(str).to_list())
+    plt.figure(figsize=(7,5))
+    word_cloud = WordCloud(background_color="white").generate(text)
 
     plt.imshow(word_cloud)
-
+    plt.axis("off")
     plt.show()
 
 def correlation_heatmap_numerical(df,exclude=[],method='spearman',annot=True,linewidth=0.1,figsize=(15,5)):
@@ -551,4 +552,4 @@ def categorical_categorical_hypothesis_test(df,col1,col2,alpha=0.05,show_freq=Fa
     print(f'CONCLUSION :  There is association between {col1} and {col2}')
   else:
     print(f'Since Pvalue is more than {alpha}, we failed to reject Null Hypothesis')
-    print(f'CONCLUSION : There is no association between {col1} and {col2}')
+    print(f'CONCLUSION : There is no association between {col1} and {col2}') 
