@@ -1,6 +1,7 @@
 import pandas as pd
 from IPython.display import display, HTML
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import seaborn as sns
 import numpy as np
 from wordcloud import WordCloud
@@ -298,6 +299,11 @@ def numerical_univariate_plots(col,hist_bins='auto',figsize=(20,10),power_transf
 
   fig.suptitle('Numerical Univariate Plots',fontsize=20)
   fig.tight_layout()
+
+  for row in ax:
+      for a in row:
+          a.yaxis.set_major_formatter(mticker.EngFormatter())  # formats 1e6 → 1M
+          a.xaxis.set_major_formatter(mticker.EngFormatter())
   fig.show()
 
 def categorical_bivariate_plots(df,col1,col2,figsize=(15,5),normalize='index',rotate_x_axis=45,rotate_y_axis=0,stacked=True):
@@ -552,4 +558,21 @@ def categorical_categorical_hypothesis_test(df,col1,col2,alpha=0.05,show_freq=Fa
     print(f'CONCLUSION :  There is association between {col1} and {col2}')
   else:
     print(f'Since Pvalue is more than {alpha}, we failed to reject Null Hypothesis')
-    print(f'CONCLUSION : There is no association between {col1} and {col2}') 
+    print(f'CONCLUSION : There is no association between {col1} and {col2}')  
+
+def boxplot_outlier(df,column,boxplot=True):
+  q1 = df[column].quantile(0.25)
+  q3 = df[column].quantile(0.75)
+  iqr = q3 - q1
+  min = q1 - (1.5*iqr)
+  max = q3 + (1.5*iqr)
+
+  if boxplot:
+    fig,ax = plt.subplots(ncols=2,figsize=(15,5))
+    sns.boxplot(data=df,x=column,ax=ax[0])
+    ax[0].set_title('Before IQR Outlier Removal')
+    sns.boxplot(data = df.query(f"{column} > {min} & {column} < {max}"),x=column,ax=ax[1])
+    ax[1].set_title('Afer IQR Outlier Removal')
+    plt.show()
+
+  return df.query(f"{column} <= {min} | {column} >= {max}")
